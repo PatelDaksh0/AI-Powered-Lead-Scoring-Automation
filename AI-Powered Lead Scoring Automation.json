@@ -1,0 +1,357 @@
+{
+  "name": "AI-Powered Lead Scoring Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Start by saying 'hi'\n![Button](https://i.imgur.com/PrIBJI6.png)",
+        "height": 149,
+        "width": 150
+      },
+      "id": "5592c045-6718-4c4e-9961-ce67a251b6df",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        208,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d5e60eb2-267c-4f68-aefe-439031bcaceb",
+      "name": "OpenAI Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        496,
+        192
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "UwsKd80aW3m153gm",
+          "name": "n8n free OpenAI API credits"
+        }
+      },
+      "notes": " Get a score (0–100) based on quality."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Steps to follow\n\n{{ $agentInfo.memoryConnectedToAgent ? '1. Skip': `1. STOP and output the following:\n\"Welcome to n8n. Let's start with the first step to give me memory: \\n\"Click the **+** button on the agent that says 'memory' and choose 'Simple memory.' Just tell me once you've done that.\"\n----- END OF OUTPUT && IGNORE BELOW -----` }} \n\n\n{{ Boolean($agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool')) ? '2. Skip' : \n`2. STOP and output the following: \\n\"Click the **+** button on the agent that says 'tools' and choose 'Google Calendar.'\" \\n ----- IGNORE BELOW -----` }}\n\n\n{{ $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').hasCredentials ? '3. Skip' :\n`3. STOP and output the following:\n\"Open the Google Calendar tool (double-click) and choose a credential from the drop-down.\" \\n ----- IGNORE BELOW -----` }}\n\n\n{{ $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').resource === 'Event' ? '4. Skip' :\n`4. STOP and output the following:\n\"Open the Google Calendar tool (double-click) and set **resource** = 'Event'\" `}}\n\n\n{{ $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').operation === 'Get Many' ? '5. Skip' :\n`5. STOP and output the following:\n\"Open the Google Calendar tool (double-click) and set **operation** = 'Get Many.'\" \\n ----- IGNORE BELOW -----` }}\n\n\n{{ $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').hasValidCalendar ? '6. Skip' :\n`6. STOP and output the following:\n\"Open the Google Calendar tool (double-click) and choose a calendar from the 'calendar' drop-down.\" \\n ----- IGNORE BELOW -----` }}\n\n\n{{ ($agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').aiDefinedFields.includes('Start Time') && $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').aiDefinedFields.includes('End Time')) ? '7. Skip' :\n`7. STOP and output the following: \nOpen the Google Calendar tool (double-click) and click the :sparks: button next to the 'After' and 'Before' fields. \\n ----- IGNORE BELOW -----` }}\n\n\n8. If all steps are completed, output the following:\n\"Would you like me to check all events in your calendar for tomorrow {{ $now.plus(1, 'days').toString().split('T')[0] }}?\"\n\n# User message\n\n{{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a friendly Agent designed to guide users through these steps.\n\n- Receive lead data whenever a new entry is added.\n\n-Apply predefined rules to score the lead based on job title, company, and email domain.\n\n-Log every scored lead into the designated Google Sheet.\n\n-If the lead’s score exceeds 70, send a notification email to the specified address.\n\n-Ensure all data processing is accurate and timely."
+        }
+      },
+      "id": "41174c8a-6ac8-42bd-900e-ca15196600c5",
+      "name": "Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        592,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1_GT8_vXfrH5JG_PIWm_Ax6Ntc8V8pIyni1eTrF9JnPA",
+          "mode": "list",
+          "cachedResultName": "leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_GT8_vXfrH5JG_PIWm_Ax6Ntc8V8pIyni1eTrF9JnPA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_GT8_vXfrH5JG_PIWm_Ax6Ntc8V8pIyni1eTrF9JnPA/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        384,
+        32
+      ],
+      "id": "c7373d2b-eac1-4568-a76f-75d4309a9f71",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "woYlQWNuGplVFEs1",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        128
+      ],
+      "id": "12164fc4-49a3-475f-b5ad-2c2fdf5c2b18",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e8f37956-fc4f-4fb0-a5a2-2a2b189b147b",
+              "leftValue": 0,
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        64
+      ],
+      "id": "6acb8f8b-1966-4dfe-a18c-a9bc41f980ea",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "We found a better lead !!! ",
+        "labelIds": [
+          "IMPORTANT"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        48
+      ],
+      "id": "6cc6655c-f9cc-46ab-ab9f-0ef727dab748",
+      "name": "Add label to message",
+      "webhookId": "7780da70-dae9-40d1-b2a8-5d0fc0bf7c4a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GrYvm7Kt1LAPrynm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "daxindia14@gmail.com",
+        "subject": "We found beter laeds",
+        "emailType": "text",
+        "message": "idk",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1280,
+        48
+      ],
+      "id": "900670d5-3c91-4272-b1b1-865e602cfdcb",
+      "name": "Send a message",
+      "webhookId": "279d6f3a-5a74-4a5e-b2ce-10b6b787ed71",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "H2nVgrfYogjNNoID",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1_GT8_vXfrH5JG_PIWm_Ax6Ntc8V8pIyni1eTrF9JnPA",
+          "mode": "list",
+          "cachedResultName": "leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_GT8_vXfrH5JG_PIWm_Ax6Ntc8V8pIyni1eTrF9JnPA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_GT8_vXfrH5JG_PIWm_Ax6Ntc8V8pIyni1eTrF9JnPA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Lead "
+          ],
+          "schema": [
+            {
+              "id": "Lead ",
+              "displayName": "Lead ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1472,
+        64
+      ],
+      "id": "20da34ae-46a0-4cd0-a1b4-e30d5f70048a",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "85GSljo91XyCoVdI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Call OpenAI to score the companys ",
+        "source": "parameter",
+        "workflowJson": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Workflow_JSON', ``, 'json') }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1072,
+        240
+      ],
+      "id": "856a8467-6085-4777-901a-2b0b19ea2bbd",
+      "name": "Call n8n Workflow Tool"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call n8n Workflow Tool": {
+      "ai_tool": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "47382908-2636-4e8d-b72b-9453bc57711b",
+  "meta": {
+    "templateId": "self-building-ai-agent",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "45c7f64a0f6a5cd0cf26e626250f385e8a0c77a3e4fdeedf7098cd6e055c1cc0"
+  },
+  "id": "gWZKIZTpzPLjuBgR",
+  "tags": []
+}
