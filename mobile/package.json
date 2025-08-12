@@ -1,0 +1,21 @@
+{
+  "name": "vehicleguard-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~51.0.10",
+    "react": "18.2.0",
+    "react-native": "0.74.2"
+  },
+  "devDependencies": {
+    "@types/react": "18.2.66",
+    "@types/react-native": "0.73.0"
+  }
+}
