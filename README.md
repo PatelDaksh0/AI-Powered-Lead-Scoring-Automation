@@ -1,74 +1,59 @@
-🧠 AI-Powered-Lead-Scoring-Automation
-🚀 Overview
-This project demonstrates my ability to build a functional AI agent using n8n, a powerful automation tool. The agent automatically processes incoming leads from Google Sheets, scores them using OpenAI, and takes conditional actions such as sending alerts and updating records.
+# VehicleGuard — MVP
 
-🎯 Purpose
-To streamline the lead qualification process by:
+A user-friendly vehicle health predictor for everyday users. Cross-platform mobile (React Native/Expo) with a Python (FastAPI) backend. MVP focuses on manual inputs and basic predictions for cars and bikes.
 
-Scoring incoming leads based on job title, company, and domain.
+## Architecture (MVP)
+- Frontend: React Native (Expo). Manual inputs, simple results screens.
+- Backend: FastAPI (Python). Rule-based predictor (extensible to ML/Scikit-learn).
+- Data: In-memory (MVP). Replace with SQLite/Postgres later.
 
-Automatically notifying relevant stakeholders of high-quality leads.
+## Quickstart (Backend)
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-Maintaining a live, updated Google Sheet with lead statuses.
+Open API docs: http://localhost:8000/docs
 
-🔧 Key Features
-Automated Lead Intake
-Triggered by a Google Sheet update.
+### Example: Predict
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "vehicle_type": "car",
+    "mileage_km": 60000,
+    "last_service_km_ago": 16000,
+    "battery_voltage_v": 11.7,
+    "coolant_temp_c": 108,
+    "tire_pressures_psi": [28,30,31,29],
+    "symptoms": ["engine_rattling"]
+  }'
+```
 
-OpenAI-Powered Scoring System
-Uses OpenAI to evaluate lead quality on a 0–100 scale based on predefined rules.
+## Quickstart (Mobile - stub)
+- Ensure backend is running on your machine/network.
+- Update `mobile/src/config.ts` `API_BASE_URL` if needed.
+- Run with Expo (if you have Node/Expo):
+```bash
+cd mobile
+npm install
+npm start
+```
 
-Conditional Actions
-If the score > 70:
+## MVP Scope
+- Manual inputs: mileage, last service, battery voltage, coolant temp, tire pressure, symptoms.
+- Predictions: health score + issue probabilities (battery, brakes, overheating) with recommendations.
+- No auth; single user, multi-vehicle later.
 
-Apply Gmail label "IMPORTANT".
+## Roadmap (high-level)
+- Week 1–2: MVP backend + forms + results.
+- Week 3–4: History, basic charts, image/noise input capture (no ML).
+- Month 2–3: OBD-II adapter integration (where available), simple ML model.
+- Month 6+: Fleet, wearables/GPS integration, premium features.
 
-Send a notification email.
-
-Append or update the lead in the same sheet.
-
-Memory + Toolchain Integration
-Uses n8n’s memory and Google Calendar tool integration to simulate interactive AI agent behavior.
-
-🧩 Workflow Components
-Node	Description
-Google Sheets Trigger	Detects new leads in real-time.
-Agent (Langchain)	Guides user through setup steps, ensures proper memory and tool configuration.
-OpenAI Model	Scores the lead with quality evaluation logic.
-If Node	Checks if score > 70.
-Gmail (Add Label & Send)	Flags and notifies for high-quality leads.
-Google Sheets Append/Update	Stores processed data for tracking.
-
-🛠️ Tech Stack
-n8n
-
-OpenAI API
-
-Google Sheets API
-
-Gmail API
-
-📂 File
-AI-Powered-Lead-Scoring-Automation.json
-This is the complete workflow that can be imported directly into an n8n instance.
-
-💡 Why This Project Matters
-This project proves I can:
-
-Work with automation platforms like n8n.
-
-Integrate APIs and tools seamlessly.
-
-Build intelligent workflows with real-world impact.
-
-Follow conditional logic and apply AI in a practical, business-focused setting.
-
-✅ How to Use
-Import the workflow into your n8n environment.
-
-Connect your OpenAI, Google Sheets, and Gmail accounts.
-
-Set up a Google Sheet with new leads.
-
-Watch the agent analyze and act on leads autonomously!
+## License
+MIT (placeholder).
 
